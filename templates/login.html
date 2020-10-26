@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block header %}HosPortal Login{% endblock %}
+{% block content %}
+<form style= "text-align: center;" action="#" method="post">
+  <label style= "text-align: left; font-size: 120%" for="username">User name:</label><br>
+  <input type="text" id="username" name="username" placeholder="email/username" required><br>
+  <label style= "text-align: left; font-size: 120%" for="password">Password:</label><br>
+  <input type="password" id="password" name="password" placeholder="enter password" required><br><br>
+  <input style="font-size: large" type="submit" value="Log-in">
+  <p style="font-size: x-small"><a href="signup" target="_self">Signup?</a></p>
+</form>
+{% endblock %}

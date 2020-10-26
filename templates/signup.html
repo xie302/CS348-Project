@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block header %}HosPortal Signup{% endblock %}
+{% block content %}
+<form style= "text-align: center;" action="#" method="post">
+  <label style= "text-align: left; font-size: 120%" for="username">User name:</label><br>
+  <input type="text" id="username" name="username" placeholder="username" required><br>
+  <label style= "text-align: left; font-size: 120%" for="email">Email:</label><br>
+  <input type="text" id="email" name="email" placeholder="enter email" required><br><br>
+  <label style= "text-align: left; font-size: 120%" for="password">Password:</label><br>
+  <input type="password" id="password" name="password" placeholder="enter password" required><br><br>
+  <input type="radio" id="doctor" name="type" value="doctor">
+  <label for="doctor">Doctor</label><br>
+  <input type="radio" id="patient" name="type" value="patient">
+  <label for="patient">Patient</label><br>
+  <input style="font-size: large" type="submit" value="Sign-up">
+
+  <p style="font-size: x-small"><a href="login" target="_self">Already have an account?</a> </p>
+</form>
+{% endblock %}
