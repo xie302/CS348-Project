@@ -1,21 +1,25 @@
 from flask import Flask, redirect, url_for, render_template, request, session, flash
 from datetime import timedelta
-from flask_mysqldb import MySQL
+import mysql.connector
 
+db = mysql.connector.connect(
+    host="34.72.99.39",
+    user="root",
+    password="CS348",
+    # ssl_ca= '/etc/mysql/ssl/client/ca-cert.pem',
+    database="CS348Proj"
+)
 app = Flask(__name__)
 app.secret_key = "This is a secret string"
-mysql = MySQL()
 app.config['MYSQL_DATABASE_USER'] = 'newuser'
 app.config['MYSQL_DATABASE_PASSWORD'] = 'awesomeblog'
 app.config['MYSQL_DATABASE_DB'] = 'hosportal'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
-mysql.init_app(app)
 app.permanent_session_lifetime = timedelta(minutes=10)
 
-db = MySQL(app)
 
 
-@app.route("/home")
+@app.route("/")
 def home():
     return render_template("index.html")
 
@@ -28,11 +32,11 @@ def signup():
         email = request.form["email"]
         password = request.form["password"]
         type = request.form["type"]
-        cur = mysql.connect.cursor()
+        cur = db.cursor()
         cur.execute("INSERT INTO hosuser(username, email, password, type) VALUES (%s, %s, %s, %s)", (username, email, password, type))
-        mysql.connection.commit()
+        db.commit()
         cur.close()
-
+        db.close()
         return redirect(url_for("login"))
 
     else:
