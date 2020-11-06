@@ -61,16 +61,25 @@
 </head>
 <body>
 <h1 style="text-align: center; font-family: 'ROG Fonts v1.6'; font-size: 600%"> {% block header %} {% endblock %} </h1>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+{% endif %}
+{% endwith %}
 <ul class="nav-section">
     <li class="active" style="float: right"> <a href="/user">Home</a>  </li>
-    <li class="nav-section"> <a href="#">Profile</a> </li>
-    <li class="nav-section"> <a href="#">Appointments</a>  </li>
-    <li class="nav-section"> <a href="#">Prescriptions</a>  </li>
+    <li class="nav-section"> <a href="profile">Profile</a> </li>
+    <li class="nav-section"> <a href="appointment">Appointments</a>  </li>
+    <li class="nav-section"> <a href="prescription">Prescriptions</a>  </li>
     <li class="dropdown">
       <a href="javascript:void(0)" class="dropbtn">Account</a>
       <div class="dropdown-content">
         <a href="/logout">Logout</a>
-        <a href="#">Delete Account</a>
+        <a href="/delete">Delete Account</a>
         <a href="#">Settings</a>
       </div>
     </li>
