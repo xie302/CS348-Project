@@ -103,14 +103,45 @@ def appointment():
         return redirect(url_for("login"))
 
 
-@app.route("/prescription")
+@app.route("/prescription", methods=["POST", "GET"])
 def prescription():
-    if "user" in session:
-        user = session["user"]
-        return render_template("Prescription.html", role=user[3], content=user[0])
+    cur = db.cursor(buffered=True)
+    cur.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
+    cur.execute("START TRANSACTION;")
+    resultRows = cur.execute("SELECT * FROM Prescription;")
+    preDetails = cur.fetchall()
+    return render_template("Prescription.html", preDetails=preDetails)
+    #button redirect to /pre_select
+
+
+@app.route("/pre_select", methods=["POST", "GET"])
+def pre_select():
+    if request.method == 'POST':
+        preDetails = request.form
+        pre_id = preDetails['pre_id']
+        amount_toassign = preDetails['amount']
+        pat_id = preDetails['pat_id']
+        doc_id = preDetails['doc_id']
+        cur = db.cursor()
+        cur.execute("SELECT amount_left FROM Prescription WHERE Pre_id = %s;", pre_id)
+        amount_left = cur.fetchall()
+        if amount_toassign <= amount_left[0]:
+            cur.execute("UPDATE Prescription"
+                        "SET amount_left = amount_left - %s"
+                        "WHERE Pre_id = %s;", (amount_toassign, pre_id))
+            cur.execute("UPDATE Report"
+                        "SET Report.Pre_id = %s"
+                        "WHERE Report.Report_num = (SELECT MAX(Appointment.Report_num)"
+                        "FROM Appointment"
+                        "WHERE Appointment.Patient_id = %s AND Appointment.Doctor_id = %s);", (pre_id, pat_id, doc_id))
+            cur.execute("UPDATE Doctor SET Doctor.state = 'available' WHERE Doctor_id = %s;", (doc_id))
+            db.commit()
+            return render_template("Pre_select.html")
+        else:
+            db.commit()
+            return render_template("Pre_select.html")
     else:
-        flash("You are not logged in!")
-        return redirect(url_for("login"))
+        return render_template("Pre_select.html")
 
 
 @app.route("/logout")
