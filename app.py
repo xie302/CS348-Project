@@ -21,9 +21,17 @@ app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 app.permanent_session_lifetime = timedelta(minutes=10)
 
 
+@app.route("/")
+def null():
+    return redirect(url_for("home"))
+
 @app.route("/home")
 def home():
-    return render_template("index.html")
+    if "user" in session:
+        user = session["user"]
+        return render_template("index.html", role=user[2], content=user[1])
+    else:
+        return redirect(url_for("login"))
 
 
 @app.route("/signup", methods=["POST","GET"])
