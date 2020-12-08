@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block header %}HosPortal Prescription{% endblock %}
+{% block content %}
+ <h1 style="text-align: center">View Your Prescriptions Here, {{role}} {{content}}</h1>
+ <table border="1" style="border:1px solid black;margin-left:auto;margin-right:auto;">
+  <tr>
+   <td><b>Prescription ID</b></td>
+   <td><b>Prescription Name</b></td>
+   <td><b>Amount</b></td>
+  </tr>
+  {% for prescription in preDetails %}
+  <tr>
+   <td> {{prescription[0]}} </td>
+   <td> {{prescription[1]}} </td>
+   <td> {{prescription[2]}} </td>
+  </tr>
+  {% endfor %}
+ </table>
+{% endblock %}
