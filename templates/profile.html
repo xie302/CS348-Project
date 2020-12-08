@@ -1,5 +1,19 @@
 {% extends "base.html" %}
 {% block header %}HosPortal Profile{% endblock %}
 {% block content %}
- <h1 style="text-align: center">Edit Your Profile Here, {{role}} {{content}}</h1>
+<h1 style="text-align: center">Edit Your Profile Here, {{role}} {{content}}</h1>
+<form style= "text-align: center;" action="#" method="post">
+  <label style= "text-align: left; font-size: 120%" for="UserName">Enter Your New User name:</label><br>
+  <input type="text" id="UserName" name="UserName" placeholder="UserName" required><br>
+  <label style= "text-align: left; font-size: 120%" for="Email">Enter Your New Email:</label><br>
+  <input type="text" id="Email" name="Email" placeholder="enter Email" required><br><br>
+  <label style= "text-align: left; font-size: 120%" for="Password">Enter Your New Password:</label><br>
+  <input type="Password" id="Password" name="Password" placeholder="enter Password" required><br><br>
+  <label style= "text-align: left; font-size: 120%" for="Password">Change Account Type:</label><br>
+  <input type="radio" id="Doctor" name="type" value="Doctor">
+  <label for="Doctor">Doctor</label><br>
+  <input type="radio" id="Patient" name="type" value="Patient">
+  <label for="Patient">Patient</label><br>
+  <input style="font-size: large" type="submit" value="Submit Changes">
+</form>
 {% endblock %}

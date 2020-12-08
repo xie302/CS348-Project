@@ -62,12 +62,12 @@ def login():
         username = request.form["username"]
         pw = request.form["password"]
         cur = db.cursor()
-        query = "SELECT UID, UserName, Email, Password, Type from User where UserName = '" + username + "'"
+        query = "SELECT * from User where UserName = '" + username + "'"
         cur.execute(query)
         usr = cur.fetchone()
         cur.close()
         if usr:
-            if pw == usr[3]:
+            if pw == usr[4]:
                 session.permanent = True
                 session["user"] = usr
                 return redirect(url_for("user"))
@@ -87,27 +87,45 @@ def login():
 def user():
     if "user" in session:
         user = session["user"]
-        return render_template("index.html", role=user[4], content=user[1])
+        return render_template("index.html", role=user[2], content=user[1])
     else:
         flash("You are not logged in!")
         return redirect(url_for("login"))
 
 
-@app.route("/profile")
+@app.route("/profile", methods=["POST", "GET"])
 def profile():
     if "user" in session:
-        user = session["user"]
-        return render_template("profile.html", role=user[4], content=user[1])
+        if request.method == "POST":
+            username = request.form["UserName"]
+            email = request.form["Email"]
+            password = request.form["Password"]
+            type = request.form["type"]
+            cur = db.cursor()
+            user = session["user"]
+            query = "UPDATE User SET UserName = '"+username+"', Email = '"+email+"', Password = '"+password+"', Type='"+type+"'WHERE UID ='"+user[0]+"'"
+            cur.execute(query)
+            db.commit()
+            flash("User " + username + " modified!")
+            cur.execute("SELECT * FROM User WHERE UID ='" + user[0] + "'")
+            usr = cur.fetchone()
+            session["user"]=usr
+            cur.close()
+            return redirect(url_for("user"))
+        else:
+            user = session["user"]
+            return render_template("profile.html", role=user[2], content=user[1])
     else:
         flash("You are not logged in!")
         return redirect(url_for("login"))
+
 
 
 @app.route("/appointment")
 def appointment():
     if "user" in session:
         user = session["user"]
-        return render_template("Appointment.html", role=user[4], content=user[1])
+        return render_template("Appointment.html", role=user[2], content=user[1])
     else:
         flash("You are not logged in!")
         return redirect(url_for("login"))
@@ -117,7 +135,7 @@ def appointment():
 def prescription():
     if "user" in session:
         user = session["user"]
-        return render_template("Prescription.html", role=user[4], content=user[1])
+        return render_template("Prescription.html", role=user[2], content=user[1])
     else:
         flash("You are not logged in!")
         return redirect(url_for("login"))
@@ -126,6 +144,7 @@ def prescription():
 @app.route("/logout")
 def logout():
     session.pop("user", None)
+    flash("Logged out")
     return redirect(url_for("login"))
 
 
