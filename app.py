@@ -121,8 +121,8 @@ def signup():
             seed(UID)
         cur.execute("INSERT INTO User(UID,UserName, Email, Password, User_type) VALUES (%s, %s, %s, %s, %s)",
                     (str(UID), username, email, password, usr_type))
-        cur.execute("DROP INDEX IF EXISTS pat_index ON Patient;")
-        cur.execute("DROP INDEX IF EXISTS doc_index ON Doctor;")
+        cur.execute("DROP INDEX pat_index ON Patient;")
+        cur.execute("DROP INDEX doc_index ON Doctor;")
         cur.execute("CREATE INDEX pat_index ON Patient (Patient_id);")
         cur.execute("CREATE INDEX doc_index ON Doctor (Doctor_id);")
         db.commit()
