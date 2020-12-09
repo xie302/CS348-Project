@@ -115,12 +115,15 @@ def signup():
         while True:
             UID = randint(10000000, 99999999)
             query = "SELECT UID from User where UID=" + str(UID)
-            cur.execute(query)
+            row_count = cur.execute(query)
             data = cur.fetchall()
-            if not data:
+            print("in loop")
+            if len(data) == 0:
                 break
-            seed(UID)
-        cur.execute("INSERT INTO User(UID,UserName, Email, Password, User_type) VALUES (%s, %s, %s, %s, %s)",
+        seed(UID)
+        print(UID)
+        # User_type changed to Type
+        cur.execute("INSERT INTO User(UID,UserName, Email, Password, Type) VALUES (%s, %s, %s, %s, %s)",
                     (str(UID), username, email, password, usr_type))
         cur.execute("DROP INDEX pat_index ON Patient;")
         cur.execute("DROP INDEX doc_index ON Doctor;")
@@ -135,6 +138,7 @@ def signup():
         if "user" in session:
             return redirect(url_for("user"))
     return render_template("signup.html")
+
 
 
 @app.route("/login", methods=["POST", "GET"])
