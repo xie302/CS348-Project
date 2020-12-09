@@ -66,7 +66,7 @@ def appointment():
             db.commit()
             return redirect(url_for("appointment"))
         else:
-            if user_role == "Doctor":
+            if user_role == "doctor":
                 cur = db.cursor(buffered=True)
                 cur.execute("SELECT Doctor_id FROM Doctor WHERE UID = " + user_id + ";")
                 doctor = cur.fetchone()
@@ -78,7 +78,7 @@ def appointment():
                 cur.execute("START TRANSACTION;")
                 cur.execute("SELECT * FROM Appointment;")
                 return render_template("appointment_doctor.html", apps=app_detaile)
-            elif user_role == "Patient":
+            elif user_role == "patient":
                 cur = db.cursor(buffered=True)
                 cur.execute("SELECT Patient_id FROM Patient WHERE UID = " + user_id + ";")
                 patient = cur.fetchone()
@@ -94,7 +94,7 @@ def appointment():
                 cur.execute("SELECT * FROM Appointment;")
                 return render_template("appointment_patient.html", avail_docs=docs, apps=pat_app_details)
             else:
-                flash("Who are you?")
+                flash(user_role)
                 return redirect(url_for("login"))
     else:
         flash("You are not logged in!")
@@ -197,12 +197,17 @@ def profile():
         else:
             user = session["user"]
             user_id = user[0]
-            cur = db.cursor()
-            cur.execute("SELECT Patient_id FROM Patient WHERE UID = " + user_id + ";")
-            pat = cur.fetchone()
-            pat_id = str(pat[0])
-            cur.execute("SELECT Name, Age, Gender, Email, Phone FROM Patient WHERE Patient_id =" + pat_id + ";")
-            profile = cur.fetchone()
+            if user[2]=="patient":
+                cur = db.cursor()
+                cur.execute("SELECT Patient_id FROM Patient WHERE UID = " + user_id + ";")
+                pat = cur.fetchone()
+                pat_id = str(pat[0])
+                cur.execute("SELECT Name, Age, Gender, Email, Phone FROM Patient WHERE Patient_id =" + pat_id + ";")
+                profile = cur.fetchone()
+            else:
+                flash("Doctor are not allowed to modify profile")
+                return redirect(url_for("user"))
+
             return render_template("profile.html", role=user[2], content=user[1], profile=profile)
     else:
         flash("You are not logged in!")
