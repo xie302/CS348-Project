@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block header %}HosPortal Appointment{% endblock %}
+{% block content %}
+    <h1 style="text-align: center">View Current Appointments</h1>
+    <table border="1" style="border:1px solid black;margin-left:auto;margin-right:auto;">
+        <tr>
+            <th>Patient ID</th>
+            <th>Description</th>
+            <th>Patient Name</th>
+            <th>Patient Age</th>
+            <th>Patient Gender</th>
+            <th>Fee</th>
+        </tr>
+        {% for app in apps %}
+            <tr>
+                <td> {{ app[5] }} </td>
+                <td> {{ app[3] }} </td>
+                <td> {{ app[0] }} </td>
+                <td> {{ app[1] }} </td>
+                <td> {{ app[2] }} </td>
+                <td> {{ app[4] }} </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}

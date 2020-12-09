@@ -1,5 +1,38 @@
 {% extends "base.html" %}
 {% block header %}HosPortal Profile{% endblock %}
 {% block content %}
- <h1 style="text-align: center">Edit Your Profile Here, {{role}} {{content}}</h1>
+    <h1 style="text-align: center">View Profile</h1>
+    <table border="1" style="border:1px solid black;margin-left:auto;margin-right:auto;">
+        <tr>
+            <th>Name</th>
+            <th>Age</th>
+            <th>Gender</th>
+            <th>Email</th>
+            <th>Phone</th>
+        </tr>
+
+            <tr>
+                <td> {{ profile[0] }} </td>
+                <td> {{ profile[1] }} </td>
+                <td> {{ profile[2] }} </td>
+                <td> {{ profile[3] }} </td>
+                <td> {{ profile[4] }} </td>
+            </tr>
+
+    </table>
+    <h1 style="text-align: center">Edit Your Profile Here, {{ role }} {{ content }}</h1>
+    <form style="text-align: center;" action="#" method="post">
+        <label style="text-align: left; font-size: 120%" for="Name">Enter Your Name:</label><br>
+        <input type="text" id="Name" name="Name" content={{ profile[0] }} required><br>
+        <label style="text-align: left; font-size: 120%" for="Email">Enter Your New Email:</label><br>
+        <input type="text" id="Email" name="Email" content={{ [profile][3] }} required><br><br>
+        <label style="text-align: left; font-size: 120%" for="Age">Change Your Age:</label><br>
+        <input type="text" id="Age" name="Age" content={{ profile[1] }} required><br><br>
+        <label style="text-align: left; font-size: 120%" for="Gender">Change Your Gender:</label><br>
+        <input type="text" id="Gender" name="Gender" content={{ profile[2] }} required><br><br>
+        <label style="text-align: left; font-size: 120%" for="Phone">Change Phone Number:</label><br>
+        <input type="text" id="Phone" name="Phone" content={{ profile[4] }} required><br><br>
+
+        <input style="font-size: large" type="submit" value="Submit Changes">
+    </form>
 {% endblock %}

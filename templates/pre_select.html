@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block header %}HosPortal Prescription{% endblock %}
+{% block content %}
+<h1 style="text-align: center">Submit Prescription Request, {{role}} {{content}}</h1>
+<form style= "text-align: center;" action="#" method="post">
+    <label style= "text-align: left; font-size: 120%" for="pre">Prescription ID:</label><br>
+    <input type="id" id="pre" name="pre_id" placeholder="e.g. 901" required><br>
+    <label style= "text-align: left; font-size: 120%" for="amo">Amount:</label><br>
+    <input type="number" id="amo" name="amount" placeholder="e.g. 20" required><br><br>
+    <label style= "text-align: left; font-size: 120%" for="pat">Patient ID:</label><br>
+    <input type="id" id="pat" name="pat_id" placeholder="e.g. 101" required><br>
+    <input style="font-size: large" type="submit">
+</form>
+{% endblock %}
