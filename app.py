@@ -52,7 +52,7 @@ def signup():
             if not data:
                 break
             seed(UID)
-        cur.execute("INSERT INTO User(UID,UserName, Email, Password, Type) VALUES (%s, %s, %s, %s, %s)", (str(UID),username, email, password, type))
+        cur.execute("INSERT INTO User(UID,UserName, Email, Password, Type) VALUES (%s, %s, %s, %s, %s)", (str(UID), username, email, password, type))
         db.commit()
         cur.close()
         flash("User " + username + " created!")
