@@ -44,15 +44,18 @@ def appointment():
         user = session["user"]
         user_id = user[0]
         user_role = user[2]
+        print(user_role)
         if request.method == "POST":
             doc_id = request.form["Doctor_id"]
+            print(doc_id)
             descr = request.form["Description"]
-            cur = db.cursor()
+            print((descr))
+            cur = db.cursor(buffered=True)
             cur.execute("SELECT Patient_id FROM Patient WHERE UID = " + user_id + ";")
-            patient = cur.fetchone()
-            pat_id = str(patient[0])
+            patient = cur.fetchall()
+            pat_id = str(patient[0][0])
             cur.execute("SELECT MAX(Report_num) FROM Report")
-            num = cur.fetchone()[0]
+            num = cur.fetchall()[0][0]
             num += 1
             cur.execute(
                 "INSERT INTO Appointment(Report_num, Patient_id, Doctor_id, Description) VALUES (%s, %s, %s, %s)",
@@ -64,36 +67,32 @@ def appointment():
                      " WHERE Doctor_id = " + doc_id + ";")
             cur.execute(query)
             db.commit()
+            cur.close()
             return redirect(url_for("appointment"))
         else:
-            if user_role == "doctor":
+            if user_role == "Doctor" or user_role == "doctor":
                 cur = db.cursor(buffered=True)
                 cur.execute("SELECT Doctor_id FROM Doctor WHERE UID = " + user_id + ";")
-                doctor = cur.fetchone()
-                doc_id = str(doctor[0])
+                doctor = cur.fetchall()
+                doc_id = str(doctor[0][0])
+                print(doc_id)
                 cur.execute("SELECT Name, Age, Gender, Description, Appointment_cost, Patient_id FROM Appointment NATURAL JOIN Report NATURAL JOIN Patient WHERE Doctor_id =" + doc_id + ";")
                 app_detaile = cur.fetchall()
+                cur.close()
+                return render_template("appointment_doctor.html", apps=app_detaile)
+            elif user_role == "Patient" or user_role == "patient":
+                cur = db.cursor(buffered=True)
+                cur.execute("SELECT Patient_id FROM Patient WHERE UID = " + user_id + ";")
+                patient = cur.fetchall()
+                pat_id = str(patient[0][0])
                 db.commit()
                 cur.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
                 cur.execute("START TRANSACTION;")
-                cur.execute("SELECT * FROM Appointment;")
-                db.commit()
-                return render_template("appointment_doctor.html", apps=app_detaile)
-            elif user_role == "patient":
-                cur = db.cursor(buffered=True)
-                cur.execute("SELECT Patient_id FROM Patient WHERE UID = " + user_id + ";")
-                patient = cur.fetchone()
-                pat_id = str(patient[0])
                 cur.execute("SELECT Doctor_id FROM Doctor WHERE State = \"available\";")
                 docs = cur.fetchall()
                 cur.execute(
                     "SELECT Doctor_id, Description, Appointment_cost, Pre_id FROM Appointment NATURAL JOIN Report WHERE Patient_id =" + pat_id + ";")
                 pat_app_details = cur.fetchall()
-                db.commit()
-                cur.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
-                cur.execute("START TRANSACTION;")
-                cur.execute("SELECT * FROM Appointment;")
-                db.commit()
                 return render_template("appointment_patient.html", avail_docs=docs, apps=pat_app_details)
             else:
                 flash(user_role)
@@ -146,7 +145,7 @@ def login():
         cur = db.cursor()
         query = "SELECT * from User where UserName = '" + username + "'"
         cur.execute(query)
-        usr = cur.fetchone()
+        usr = cur.fetchall()[0]#UNSURE
         cur.close()
         if usr:
             if pw == usr[4]:
@@ -192,20 +191,20 @@ def profile():
             cur.execute("UPDATE Patient SET Name = '" + name + "', Age = " + age + ", Gender = '" + gender + "', Email = '" + email + "', Phone = '" + phone + "' WHERE UID = '" + user[0] + "'")
             db.commit()
             cur.execute("SELECT * FROM User WHERE UID ='" + user[0] + "'")
-            usr = cur.fetchone()
-            session["user"] = usr
+            usr = cur.fetchall()
+            session["user"] = usr[0]#UNSURE
             cur.close()
             return redirect(url_for("user"))
         else:
             user = session["user"]
             user_id = user[0]
-            if user[2]=="patient":
-                cur = db.cursor()
+            if user[2] == "patient" or user[2] == "Patient":
+                cur = db.cursor(buffered=True)
                 cur.execute("SELECT Patient_id FROM Patient WHERE UID = " + user_id + ";")
-                pat = cur.fetchone()
-                pat_id = str(pat[0])
+                pat = cur.fetchall()
+                pat_id = str(pat[0][0])
                 cur.execute("SELECT Name, Age, Gender, Email, Phone FROM Patient WHERE Patient_id =" + pat_id + ";")
-                profile = cur.fetchone()
+                profile = cur.fetchall()[0]
             else:
                 flash("Doctor are not allowed to modify profile")
                 return redirect(url_for("user"))
