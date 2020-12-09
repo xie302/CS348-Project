@@ -105,9 +105,9 @@ def appointment():
 def signup():
     if request.method == "POST":
 
-        username = request.form["UserName"]
-        email = request.form["Email"]
-        password = request.form["Password"]
+        username = request.form["username"]
+        email = request.form["email"]
+        password = request.form["password"]
         usr_type = request.form["type"]
         cur = db.cursor()
         seed(1)
