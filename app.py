@@ -52,7 +52,7 @@ def signup():
             if not data:
                 break
             seed(UID)
-        cur.execute("INSERT INTO User(UID,UserName, Email, Password, Type) VALUES (%s, %s, %s, %s, %s)", (str(UID), username, email, password, type))
+        cur.execute("INSERT INTO User(UID,UserName, Email, Password, User_type) VALUES (%s, %s, %s, %s, %s)", (str(UID), username, email, password, type))
         db.commit()
         cur.close()
         flash("User " + username + " created!")
@@ -111,7 +111,7 @@ def profile():
             type = request.form["type"]
             cur = db.cursor()
             user = session["user"]
-            query = "UPDATE User SET UserName = '"+username+"', Email = '"+email+"', Password = '"+password+"', Type='"+type+"'WHERE UID ='"+user[0]+"'"
+            query = "UPDATE User SET UserName = '"+username+"', Email = '"+email+"', Password = '"+password+"', User_type='"+type+"'WHERE UID ='"+user[0]+"'"
             cur.execute(query)
             db.commit()
             flash("User " + username + " modified!")
@@ -143,8 +143,8 @@ def appointment():
 def prescription():
     if "user" in session:
         user = session["user"]
-        user_type = user[3]
-        user_id = user[4]
+        user_type = user[2]
+        user_id = user[0]
         print(user_type)
         if user_type == 'doctor' or user_type == 'Doctor':
             cur = db.cursor(buffered=True)
