@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block header %}HosPortal Appointment{% endblock %}
+{% block content %}
+    <h1 style="text-align: center">View Current Appointments</h1>
+    <table border="1" style="border:1px solid black;margin-left:auto;margin-right:auto;">
+        <tr>
+            <th>Doctor ID</th>
+            <th>Description</th>
+            <th>Fee</th>
+        </tr>
+        {% for app in apps %}
+            <tr>
+                <td> {{ app[0] }} </td>
+                <td> {{ app[1] }} </td>
+                <td> {{ app[2] }} </td>
+            </tr>
+        {% endfor %}
+    </table>
+    <h1 style="text-align: center">View available doctors</h1>
+    <table border="1" style="border:1px solid black;margin-left:auto;margin-right:auto;">
+        <tr>
+            <th>Doctor ID</th>
+        </tr>
+        {% for doc in avail_docs %}
+            <tr>
+                <td> {{ doc[0] }} </td>
+            </tr>
+        {% endfor %}
+    </table>
+    <h1 style="text-align: center">Make appointment</h1>
+    <form style="text-align: center;" action="#" method="post">
+        <label style="text-align: center; font-size: 120%" for="Doctor_id">Enter Doctor_id:</label><br>
+        <input type="text" id="Doctor_id" name="Doctor_id" placeholder="Select available doctor_id from above" size="40x" required><br>
+        <label style="text-align: center; font-size: 120%" for="Description">State the Symptoms:</label><br>
+        <textarea id="Description" name="Description" placeholder="Word limit: 100" required> </textarea><br><br>
+        <h3 style="text-align: center">There will be an appointment fee of $50</h3>
+        <input style="font-size: large" type="submit" value="Submit Appointment">
+    </form>
+{% endblock %}

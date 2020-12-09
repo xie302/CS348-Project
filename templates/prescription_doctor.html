@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block header %}HosPortal Prescription{% endblock %}
+{% block content %}
+ <h1 style="text-align: center">View Prescription Available in Storage, {{role}} {{content}}</h1>
+<table border="1" style="border:1px solid black;margin-left:auto;margin-right:auto;">
+ <tr>
+  <th>Prescription ID</th>
+  <th>Prescription Name</th>
+  <th>Amount</th>
+ </tr>
+ {% for prescription in preDetails %}
+ <tr>
+  <td> {{prescription[0]}} </td>
+  <td> {{prescription[1]}} </td>
+  <td> {{prescription[2]}} </td>
+ </tr>
+ {% endfor %}
+</table>
+
+<table border="1" style="border:1px solid black;margin-left:auto;margin-right:auto;">
+ <tr>
+  <th>Prescription ID</th>
+  <th>Prescription Name</th>
+  <th>Amount</th>
+  <th>Patient ID</th>
+  <th>Patient Name</th>
+ </tr>
+ {% for pat_pre in pat_pre_details %}
+ <tr>
+  <td> {{pat_pre[0]}} </td>
+  <td> {{pat_pre[1]}} </td>
+  <td> {{pat_pre[2]}} </td>
+  <td> {{pat_pre[3]}} </td>
+  <td> {{pat_pre[4]}} </td>
+ </tr>
+ {% endfor %}
+</table>
+<p align="center"><a href="pre_select" ><button class=grey style="height:75px;width:150px">Assign Prescription</button></a></p>
+{% endblock %}

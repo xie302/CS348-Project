@@ -1,8 +1,11 @@
 from flask import Flask, redirect, url_for, render_template, request, session, flash
 from datetime import timedelta
 import mysql.connector
+import sqlalchemy
+
 from random import seed
 from random import randint
+
 db = mysql.connector.connect(
     host="34.72.99.39",
     user="root",
@@ -25,6 +28,7 @@ app.permanent_session_lifetime = timedelta(minutes=10)
 def null():
     return redirect(url_for("home"))
 
+
 @app.route("/home")
 def home():
     if "user" in session:
@@ -34,25 +38,93 @@ def home():
         return redirect(url_for("login"))
 
 
-@app.route("/signup", methods=["POST","GET"])
+@app.route("/appointment", methods=["POST", "GET"])
+def appointment():
+    if "user" in session:
+        user = session["user"]
+        user_id = user[0]
+        user_role = user[2]
+        if request.method == "POST":
+            doc_id = request.form["Doctor_id"]
+            descr = request.form["Description"]
+            cur = db.cursor()
+            cur.execute("SELECT Patient_id FROM Patient WHERE UID = " + user_id + ";")
+            patient = cur.fetchone()
+            pat_id = str(patient[0])
+            cur.execute("SELECT MAX(Report_num) FROM Report")
+            num = cur.fetchone()[0]
+            num += 1
+            cur.execute(
+                "INSERT INTO Appointment(Report_num, Patient_id, Doctor_id, Description) VALUES (%s, %s, %s, %s)",
+                (num, pat_id, doc_id, descr))
+            cur.execute("INSERT INTO Report(Report_num, Pre_id, Pre_amount, Appointment_cost) VALUES (%s,%s, %s, %s)",
+                        (num, 0, 0, 50))
+            query = ("UPDATE Doctor"
+                     " SET State = \"Occupied\" "
+                     " WHERE Doctor_id = " + doc_id + ";")
+            cur.execute(query)
+            db.commit()
+            return redirect(url_for("appointment"))
+        else:
+            if user_role == "Doctor":
+                cur = db.cursor(buffered=True)
+                cur.execute("SELECT Doctor_id FROM Doctor WHERE UID = " + user_id + ";")
+                doctor = cur.fetchone()
+                doc_id = str(doctor[0])
+                cur.execute("SELECT Name, Age, Gender, Description, Appointment_cost, Patient_id FROM Appointment NATURAL JOIN Report NATURAL JOIN Patient WHERE Doctor_id =" + doc_id + ";")
+                app_detaile = cur.fetchall()
+                db.commit()
+                cur.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
+                cur.execute("START TRANSACTION;")
+                cur.execute("SELECT * FROM Appointment;")
+                return render_template("appointment_doctor.html", apps=app_detaile)
+            elif user_role == "Patient":
+                cur = db.cursor(buffered=True)
+                cur.execute("SELECT Patient_id FROM Patient WHERE UID = " + user_id + ";")
+                patient = cur.fetchone()
+                pat_id = str(patient[0])
+                cur.execute("SELECT Doctor_id FROM Doctor WHERE State = \"available\";")
+                docs = cur.fetchall()
+                cur.execute(
+                    "SELECT Doctor_id, Description, Appointment_cost, Pre_id FROM Appointment NATURAL JOIN Report WHERE Patient_id =" + pat_id + ";")
+                pat_app_details = cur.fetchall()
+                db.commit()
+                cur.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
+                cur.execute("START TRANSACTION;")
+                cur.execute("SELECT * FROM Appointment;")
+                return render_template("appointment_patient.html", avail_docs=docs, apps=pat_app_details)
+            else:
+                flash("Who are you?")
+                return redirect(url_for("login"))
+    else:
+        flash("You are not logged in!")
+        return redirect(url_for("login"))
+
+
+@app.route("/signup", methods=["POST", "GET"])
 def signup():
     if request.method == "POST":
 
         username = request.form["UserName"]
         email = request.form["Email"]
         password = request.form["Password"]
-        type = request.form["type"]
+        usr_type = request.form["type"]
         cur = db.cursor()
         seed(1)
         while True:
             UID = randint(10000000, 99999999)
-            query = "SELECT UID from User where UID="+str(UID)
+            query = "SELECT UID from User where UID=" + str(UID)
             cur.execute(query)
             data = cur.fetchall()
             if not data:
                 break
             seed(UID)
-        cur.execute("INSERT INTO User(UID,UserName, Email, Password, Type) VALUES (%s, %s, %s, %s, %s)", (str(UID), username, email, password, type))
+        cur.execute("INSERT INTO User(UID,UserName, Email, Password, User_type) VALUES (%s, %s, %s, %s, %s)",
+                    (str(UID), username, email, password, usr_type))
+        cur.execute("DROP INDEX IF EXISTS pat_index ON Patient;")
+        cur.execute("DROP INDEX IF EXISTS doc_index ON Doctor;")
+        cur.execute("CREATE INDEX pat_index ON Patient (Patient_id);")
+        cur.execute("CREATE INDEX doc_index ON Doctor (Doctor_id);")
         db.commit()
         cur.close()
         flash("User " + username + " created!")
@@ -105,35 +177,33 @@ def user():
 def profile():
     if "user" in session:
         if request.method == "POST":
-            username = request.form["UserName"]
+            name = request.form["Name"]
             email = request.form["Email"]
-            password = request.form["Password"]
-            type = request.form["type"]
+            age = request.form["Age"]
+            gender = request.form["Gender"]
+            phone = request.form["Phone"]
             cur = db.cursor()
             user = session["user"]
-            query = "UPDATE User SET UserName = '"+username+"', Email = '"+email+"', Password = '"+password+"', Type='"+type+"'WHERE UID ='"+user[0]+"'"
+
+            query = "UPDATE User SET  Email = '" + email + "'WHERE UID ='" + user[0] + "'"
             cur.execute(query)
+            cur.execute("UPDATE Patient SET Name = '" + name + "', Age = " + age + ", Gender = '" + gender + "', Email = '" + email + "', Phone = '" + phone + "' WHERE UID = '" + user[0] + "'")
             db.commit()
-            flash("User " + username + " modified!")
             cur.execute("SELECT * FROM User WHERE UID ='" + user[0] + "'")
             usr = cur.fetchone()
-            session["user"]=usr
+            session["user"] = usr
             cur.close()
             return redirect(url_for("user"))
         else:
             user = session["user"]
-            return render_template("profile.html", role=user[2], content=user[1])
-    else:
-        flash("You are not logged in!")
-        return redirect(url_for("login"))
-
-
-
-@app.route("/appointment")
-def appointment():
-    if "user" in session:
-        user = session["user"]
-        return render_template("Appointment.html", role=user[2], content=user[1])
+            user_id = user[0]
+            cur = db.cursor()
+            cur.execute("SELECT Patient_id FROM Patient WHERE UID = " + user_id + ";")
+            pat = cur.fetchone()
+            pat_id = str(pat[0])
+            cur.execute("SELECT Name, Age, Gender, Email, Phone FROM Patient WHERE Patient_id =" + pat_id + ";")
+            profile = cur.fetchone()
+            return render_template("profile.html", role=user[2], content=user[1], profile=profile)
     else:
         flash("You are not logged in!")
         return redirect(url_for("login"))
@@ -143,8 +213,8 @@ def appointment():
 def prescription():
     if "user" in session:
         user = session["user"]
-        user_type = user[3]
-        user_id = user[4]
+        user_type = user[2]
+        user_id = user[0]
         print(user_type)
         if user_type == 'doctor' or user_type == 'Doctor':
             cur = db.cursor(buffered=True)
@@ -160,7 +230,7 @@ def prescription():
             cur.execute("START TRANSACTION;")
             cur.execute("SELECT * FROM Prescription;")
             preDetails = cur.fetchall()
-            return render_template("Prescription_doctor.html", preDetails=preDetails, pat_pre_details=pat_pre_details)
+            return render_template("prescription_doctor.html", preDetails=preDetails, pat_pre_details=pat_pre_details)
 
         elif user_type == 'patient' or user_type == 'Patient':
             cur = db.cursor(buffered=True)
@@ -173,31 +243,32 @@ def prescription():
                         " FROM Appointment A"
                         " WHERE A.Patient_id =" + pat_id + ");")
             preDetails = cur.fetchall()
-            return render_template("Prescription_patient.html", preDetails=preDetails)
-            #button redirect to /pre_select
+            return render_template("prescription_patient.html", preDetails=preDetails)
+            # button redirect to /pre_select
         else:
-            return("unknown user")
+            return ("unknown user")
             return render_template("login.html", role=user[3], content=user[0])
     else:
         flash("You are not logged in!")
         return redirect(url_for("login"))
+
 
 @app.route("/pre_select", methods=["POST", "GET"])
 def pre_select():
     if "user" in session:
         user = session["user"]
         if request.method == 'POST':
-            #get pre_id, amount_toassign, pat_id
+            # get pre_id, amount_toassign, pat_id
             preDetails = request.form
             pre_id = preDetails['pre_id']
             amount_toassign = int(preDetails['amount'])
             pat_id = preDetails['pat_id']
             cur = db.cursor()
-            #get doc_id from user
-            cur.execute("SELECT Doctor_id FROM Doctor WHERE UID = " + user[4] + ";")
+            # get doc_id from user
+            cur.execute("SELECT Doctor_id FROM Doctor WHERE UID = " + user[0] + ";")
             doc_result = cur.fetchall()
             doc_id = str(doc_result[0][0])
-            #get amount_left
+            # get amount_left
             query = "SELECT amount_left FROM Prescription WHERE Pre_id =" + pre_id + ";"
             cur.execute(query)
             result = cur.fetchall()
@@ -205,27 +276,27 @@ def pre_select():
             if amount_toassign <= amount_left:
                 query = ("UPDATE Prescription"
                          " SET amount_left = amount_left - " + str(amount_toassign) + ""
-                         " WHERE Pre_id = " + pre_id + ";")
+                                                                                      " WHERE Pre_id = " + pre_id + ";")
                 cur.execute(query)
                 query = ("UPDATE Report"
                          " SET Report.Pre_id =" + pre_id + ""
-                         " WHERE Report.Report_num = (SELECT MAX(Appointment.Report_num)"
-                         " FROM Appointment"
-                         " WHERE Appointment.Patient_id =" + pat_id + " AND Appointment.Doctor_id =" + doc_id + ");")
+                                                           " WHERE Report.Report_num = (SELECT MAX(Appointment.Report_num)"
+                                                           " FROM Appointment"
+                                                           " WHERE Appointment.Patient_id =" + pat_id + " AND Appointment.Doctor_id =" + doc_id + ");")
                 cur.execute(query)
                 query = ("UPDATE Report"
                          " SET Report.Pre_amount =" + str(amount_toassign) + ""
-                         " WHERE Report.Report_num = (SELECT MAX(Appointment.Report_num)"
-                         " FROM Appointment"
-                         " WHERE Appointment.Patient_id =" + pat_id + " AND Appointment.Doctor_id =" + doc_id + ");")
+                                                                             " WHERE Report.Report_num = (SELECT MAX(Appointment.Report_num)"
+                                                                             " FROM Appointment"
+                                                                             " WHERE Appointment.Patient_id =" + pat_id + " AND Appointment.Doctor_id =" + doc_id + ");")
                 cur.execute(query)
                 cur.execute("UPDATE Doctor SET Doctor.state = 'available' WHERE Doctor_id =" + doc_id + ";")
                 db.commit()
                 # need to be shown as small side titles
-                return("Prescription request successful")
+                return "Prescription request successful"
             else:
                 db.commit()
-                return ("Prescription request unsuccessful")
+                return "Prescription request unsuccessful"
         else:
             return render_template("pre_select.html")
     else:
@@ -260,3 +331,4 @@ def delete():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
