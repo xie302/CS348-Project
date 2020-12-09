@@ -77,6 +77,7 @@ def appointment():
                 cur.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
                 cur.execute("START TRANSACTION;")
                 cur.execute("SELECT * FROM Appointment;")
+                db.commit()
                 return render_template("appointment_doctor.html", apps=app_detaile)
             elif user_role == "patient":
                 cur = db.cursor(buffered=True)
@@ -92,6 +93,7 @@ def appointment():
                 cur.execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;")
                 cur.execute("START TRANSACTION;")
                 cur.execute("SELECT * FROM Appointment;")
+                db.commit()
                 return render_template("appointment_patient.html", avail_docs=docs, apps=pat_app_details)
             else:
                 flash(user_role)
@@ -335,5 +337,5 @@ def delete():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
 
